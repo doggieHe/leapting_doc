@@ -558,7 +558,7 @@
             
             fileEl.innerHTML = `<i class="fas ${iconClass}"></i>${item.name}`;
             fileEl.dataset.path = item.path;
-            fileEl.dataset.download = item.download_url;
+            fileEl.dataset.download = item.path;
             fileEl.dataset.type = fileType;
             
             fileEl.addEventListener('click', () => {
@@ -572,7 +572,7 @@
                 currentFile = {
                     name: item.name,
                     path: item.path,
-                    download_url: item.download_url,
+                    path: item.path,
                     fileType: fileType
                 };
                 previewFile(currentFile);
@@ -700,7 +700,7 @@
         // 预览图片
         function previewImage(file) {
             const img = document.createElement('img');
-            img.src = file.download_url;
+            img.src = file.path;
             img.alt = file.name;
             img.className = 'image-preview';
             img.onload = () => {
@@ -725,7 +725,7 @@
             videoContainer.style.justifyContent = 'center';
             
             const video = document.createElement('video');
-            video.src = file.download_url;
+            video.src = file.path;
             video.controls = true;
             video.className = 'video-preview';
             video.style.maxHeight = '80vh';
@@ -738,7 +738,7 @@
         function previewPDF(file) {
             fileContentEl.innerHTML = `
                 <iframe 
-                    src="https://docs.google.com/gview?url=${encodeURIComponent(file.download_url)}&embedded=true" 
+                    src="https://docs.google.com/gview?url=${encodeURIComponent(file.path)}&embedded=true" 
                     class="office-preview">
                 </iframe>
             `;
@@ -748,7 +748,7 @@
         function previewOfficeFile(file) {
             fileContentEl.innerHTML = `
                 <iframe 
-                    src="https://docs.google.com/gview?url=${encodeURIComponent(file.download_url)}&embedded=true" 
+                    src="https://docs.google.com/gview?url=${encodeURIComponent(file.path)}&embedded=true" 
                     class="office-preview">
                 </iframe>
             `;
@@ -770,7 +770,7 @@
         function downloadCurrentFile() {
             if (currentFile) {
                 const link = document.createElement('a');
-                link.href = currentFile.download_url;
+                link.href = currentFile.path;
                 link.download = currentFile.name;
                 link.target = '_blank';
                 document.body.appendChild(link);
