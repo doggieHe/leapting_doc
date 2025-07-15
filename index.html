@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>科技资源库</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#165DFF',
+            secondary: '#7B61FF',
+            dark: '#0F172A',
+            'dark-light': '#1E293B',
+            'dark-lighter': '#334155',
+            accent: '#00B42A',
+            warning: '#FF7D00',
+            danger: '#F53F3F',
+          },
+          fontFamily: {
+            inter: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .menu-active {
+        @apply bg-primary/20 text-primary border-r-4 border-primary;
+      }
+      .sidebar-item {
+        @apply flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-primary/10 hover:text-primary transition-all duration-200 cursor-pointer;
+      }
+      .file-item {
+        @apply flex items-center justify-between p-3 bg-dark-light rounded-lg hover:bg-dark-lighter transition-all duration-200 cursor-pointer;
+      }
+      .animate-fade-in {
+        animation: fadeIn 0.5s ease-in-out;
+      }
+      .animate-slide-in {
+        animation: slideIn 0.3s ease-out;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes slideIn {
+        from { transform: translateX(-20px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+    }
+  </style>
+</head>
+<body class="bg-dark text-gray-200 font-inter min-h-screen flex flex-col">
+  <!-- 顶部导航 -->
+  <header class="bg-dark-light border-b border-dark-lighter py-3 px-6 flex items-center justify-between">
+    <div class="flex items-center space-x-2">
+      <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+        <i class="fa fa-database text-white text-xl"></i>
+      </div>
+      <h1 class="text-xl font-bold text-white">Leapting 资源库</h1>
+    </div>
+    <div class="text-right">
+      <p class="text-sm text-gray-400">探索技术的无限可能</p>
+    </div>
+  </header>
+
+  <!-- 主要内容区 -->
+  <main class="flex flex-1 max-w-8xl w-80vw mx-auto overflow-hidden">
+    <!-- 左侧菜单 -->
+    <aside class="w-64 bg-dark-light border-r border-dark-lighter overflow-y-auto animate-fade-in">
+      <nav class="py-4">
+        <div class="px-4 mb-4">
+          <h2 class="text-sm uppercase text-gray-500 font-semibold tracking-wider">资源分类</h2>
+        </div>
+        
+        <div class="menu-group" data-folder="img">
+          <div class="sidebar-item group">
+            <i class="fa fa-folder text-warning w-5 text-center"></i>
+            <span>img</span>
+            <i class="fa fa-chevron-down text-xs ml-auto transition-transform duration-200 group-hover:rotate-180"></i>
+          </div>
+          <div class="submenu pl-4 hidden">
+            <!-- 图片子菜单将通过JS动态生成 -->
+          </div>
+        </div>
+        
+        <div class="menu-group" data-folder="video">
+          <div class="sidebar-item group">
+            <i class="fa fa-film text-primary w-5 text-center"></i>
+            <span>video</span>
+            <i class="fa fa-chevron-down text-xs ml-auto transition-transform duration-200 group-hover:rotate-180"></i>
+          </div>
+          <div class="submenu pl-4 hidden">
+            <!-- 视频子菜单将通过JS动态生成 -->
+          </div>
+        </div>
+        
+        <div class="menu-group" data-folder="doc">
+          <div class="sidebar-item group">
+            <i class="fa fa-file-text text-accent w-5 text-center"></i>
+            <span>doc</span>
+            <i class="fa fa-chevron-down text-xs ml-auto transition-transform duration-200 group-hover:rotate-180"></i>
+          </div>
+          <div class="submenu pl-4 hidden">
+            <!-- 文档子菜单将通过JS动态生成 -->
+          </div>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- 右侧内容 -->
+    <section class="flex-1 p-6 overflow-y-auto bg-dark animate-fade-in" id="content-area">
+      <div class="welcome-message text-center py-12 animate-slide-in">
+        <div class="w-20 h-20 rounded-full bg-gradient-to-br from-primary/30 to-secondary/30 mx-auto flex items-center justify-center mb-6">
+          <i class="fa fa-rocket text-4xl text-primary"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-white mb-3">欢迎使用科技资源库</h2>
+        <p class="text-gray-400 max-w-lg mx-auto">选择左侧菜单中的资源类型和具体文件，开始探索丰富的技术资源</p>
+      </div>
+      
+      <div id="resource-content" class="hidden animate-fade-in">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-xl font-semibold text-white" id="resource-title">资源详情</h2>
+          <button id="back-btn" class="text-gray-400 hover:text-white transition-colors duration-200">
+            <i class="fa fa-arrow-left mr-1"></i> 返回
+          </button>
+        </div>
+        
+        <div id="image-container" class="hidden">
+          <img id="resource-image" src="" alt="资源图片" class="rounded-lg shadow-xl max-w-full mx-auto">
+        </div>
+        
+        <div id="video-container" class="hidden">
+          <video id="resource-video" controls class="rounded-lg shadow-xl max-w-full mx-auto">
+            您的浏览器不支持视频播放
+          </video>
+        </div>
+        
+        <div id="doc-container" class="hidden">
+          <div id="resource-doc" class="bg-dark-light p-6 rounded-lg shadow-lg">
+            <p class="text-gray-300">文档内容将在这里显示</p>
+          </div>
+        </div>
+        
+        <div id="loading-indicator" class="hidden flex justify-center py-8">
+          <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 页脚 -->
+  <footer class="bg-dark-light border-t border-dark-lighter py-4 px-6 text-center text-gray-500 text-sm">
+    <p>© 2025 科技资源库 | 探索技术的无限可能</p>
+  </footer>
+
+  <script>
+    // GitHub仓库信息
+    const GITHUB_USER = 'doggieHe';
+    const GITHUB_REPO = 'leapting_doc';
+    const GITHUB_BRANCH = 'main';
+    
+    // DOM元素
+    const menuGroups = document.querySelectorAll('.menu-group');
+    const contentArea = document.getElementById('content-area');
+    const resourceContent = document.getElementById('resource-content');
+    const welcomeMessage = document.querySelector('.welcome-message');
+    const imageContainer = document.getElementById('image-container');
+    const videoContainer = document.getElementById('video-container');
+    const docContainer = document.getElementById('doc-container');
+    const resourceTitle = document.getElementById('resource-title');
+    const resourceImage = document.getElementById('resource-image');
+    const resourceVideo = document.getElementById('resource-video');
+    const resourceDoc = document.getElementById('resource-doc');
+    const backBtn = document.getElementById('back-btn');
+    const loadingIndicator = document.getElementById('loading-indicator');
+    
+    // 初始化
+    document.addEventListener('DOMContentLoaded', () => {
+      // 为每个菜单组添加点击事件
+      menuGroups.forEach(group => {
+        const folderName = group.dataset.folder;
+        const sidebarItem = group.querySelector('.sidebar-item');
+        const submenu = group.querySelector('.submenu');
+        
+        // 点击菜单组标题展开/折叠子菜单
+        sidebarItem.addEventListener('click', () => {
+          // 切换子菜单显示状态
+          submenu.classList.toggle('hidden');
+          
+          // 如果子菜单是空的，则加载文件夹内容
+          if (submenu.children.length === 0) {
+            loadFolderContent(folderName, submenu);
+          }
+        });
+      });
+      
+      // 返回按钮点击事件
+      backBtn.addEventListener('click', () => {
+        showWelcomeMessage();
+      });
+    });
+    
+    // 加载文件夹内容
+    async function loadFolderContent(folderName, submenuElement) {
+      try {
+        // 显示加载状态
+        submenuElement.innerHTML = `
+          <div class="sidebar-item text-gray-500 cursor-not-allowed">
+            <i class="fa fa-circle-o-notch fa-spin w-5 text-center"></i>
+            <span>加载中...</span>
+          </div>
+        `;
+        
+        // 调用GitHub API获取文件夹内容
+        const response = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${folderName}?ref=${GITHUB_BRANCH}`);
+        
+        if (!response.ok) {
+          throw new Error(`无法加载文件夹内容: ${response.statusText}`);
+        }
+        
+        const files = await response.json();
+        
+        // 清空加载状态
+        submenuElement.innerHTML = '';
+        
+        // 添加文件项
+        files.forEach(file => {
+          if (file.type === 'file') {
+            const fileItem = document.createElement('div');
+            fileItem.className = 'sidebar-item submenu-item';
+            fileItem.innerHTML = `
+              <i class="fa ${getFileIcon(file.name)} w-5 text-center"></i>
+              <span>${file.name}</span>
+            `;
+            
+            // 添加点击事件
+            fileItem.addEventListener('click', () => {
+              selectFile(folderName, file.name, file.download_url);
+            });
+            
+            submenuElement.appendChild(fileItem);
+          }
+        });
+        
+        // 如果文件夹为空
+        if (files.length === 0) {
+          submenuElement.innerHTML = `
+            <div class="sidebar-item text-gray-500 cursor-not-allowed">
+              <i class="fa fa-folder-open-o w-5 text-center"></i>
+              <span>文件夹为空</span>
+            </div>
+          `;
+        }
+      } catch (error) {
+        console.error('加载文件夹内容时出错:', error);
+        submenuElement.innerHTML = `
+          <div class="sidebar-item text-danger cursor-not-allowed">
+            <i class="fa fa-exclamation-triangle w-5 text-center"></i>
+            <span>加载失败</span>
+          </div>
+        `;
+      }
+    }
+    
+    // 选择文件
+    function selectFile(folderName, fileName, downloadUrl) {
+      // 更新标题
+      resourceTitle.textContent = fileName;
+      
+      // 隐藏欢迎信息，显示资源内容和加载指示器
+      welcomeMessage.classList.add('hidden');
+      resourceContent.classList.remove('hidden');
+      imageContainer.classList.add('hidden');
+      videoContainer.classList.add('hidden');
+      docContainer.classList.add('hidden');
+      loadingIndicator.classList.remove('hidden');
+      
+      // 根据文件类型显示不同的内容
+      if (fileName.toLowerCase().endsWith(('.jpg', '.jpeg', '.png', '.gif', '.bmp'))) {
+        showImage(fileName, downloadUrl);
+      } else if (fileName.toLowerCase().endsWith(('.mp4', '.webm', '.ogg'))) {
+        showVideo(fileName, downloadUrl);
+      } else if (fileName.toLowerCase().endsWith(('.txt', '.md', '.json', '.html', '.css', '.js'))) {
+        showDocument(fileName, downloadUrl);
+      } else {
+        // 未知文件类型
+        loadingIndicator.classList.add('hidden');
+        docContainer.classList.remove('hidden');
+        resourceDoc.innerHTML = `
+          <div class="text-center py-8">
+            <div class="w-16 h-16 rounded-full bg-dark-lighter mx-auto flex items-center justify-center mb-4">
+              <i class="fa fa-file-o text-2xl text-gray-400"></i>
+            </div>
+            <h3 class="text-lg font-medium text-gray-300 mb-2">无法预览此文件类型</h3>
+            <p class="text-gray-500">文件类型: ${getFileExtension(fileName)}</p>
+            <a href="${downloadUrl}" target="_blank" class="inline-block mt-4 px-4 py-2 bg-primary/20 hover:bg-primary/30 text-primary rounded-lg transition-colors duration-200">
+              <i class="fa fa-download mr-1"></i> 下载文件
+            </a>
+          </div>
+        `;
+      }
+    }
+    
+    // 显示图片
+    async function showImage(fileName, downloadUrl) {
+      try {
+        // 直接使用GitHub原始URL，避免跨域问题
+        const imageUrl = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${encodeURIComponent(fileName)}`;
+        
+        // 创建图片对象以预加载
+        const img = new Image();
+        img.onload = () => {
+          resourceImage.src = imageUrl;
+          resourceImage.alt = fileName;
+          loadingIndicator.classList.add('hidden');
+          imageContainer.classList.remove('hidden');
+        };
+        img.onerror = () => {
+          throw new Error('图片加载失败');
+        };
+        img.src = imageUrl;
+      } catch (error) {
+        console.error('显示图片时出错:', error);
+        loadingIndicator.classList.add('hidden');
+        docContainer.classList.remove('hidden');
+        resourceDoc.innerHTML = `
+          <div class="text-center py-8">
+            <div class="w-16 h-16 rounded-full bg-dark-lighter mx-auto flex items-center justify-center mb-4">
+              <i class="fa fa-picture-o text-2xl text-gray-400"></i>
+            </div>
+            <h3 class="text-lg font-medium text-gray-300 mb-2">图片加载失败</h3>
+            <p class="text-gray-500">${error.message}</p>
+          </div>
+        `;
+      }
+    }
+    
+    // 显示视频
+    async function showVideo(fileName, downloadUrl) {
+      try {
+        // 直接使用GitHub原始URL，避免跨域问题
+        const videoUrl = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${encodeURIComponent(fileName)}`;
+        
+        resourceVideo.src = videoUrl;
+        resourceVideo.load();
+        
+        // 视频元数据加载后隐藏加载指示器
+        resourceVideo.onloadedmetadata = () => {
+          loadingIndicator.classList.add('hidden');
+          videoContainer.classList.remove('hidden');
+        };
+        
+        resourceVideo.onerror = () => {
+          throw new Error('视频加载失败');
+        };
+      } catch (error) {
+        console.error('显示视频时出错:', error);
+        loadingIndicator.classList.add('hidden');
+        docContainer.classList.remove('hidden');
+        resourceDoc.innerHTML = `
+          <div class="text-center py-8">
+            <div class="w-16 h-16 rounded-full bg-dark-lighter mx-auto flex items-center justify-center mb-4">
+              <i class="fa fa-film text-2xl text-gray-400"></i>
+            </div>
+            <h3 class="text-lg font-medium text-gray-300 mb-2">视频加载失败</h3>
+            <p class="text-gray-500">${error.message}</p>
+          </div>
+        `;
+      }
+    }
+    
+    // 显示文档
+    async function showDocument(fileName, downloadUrl) {
+      try {
+        const response = await fetch(downloadUrl);
+        
+        if (!response.ok) {
+          throw new Error(`无法加载文档: ${response.statusText}`);
+        }
+        
+        // 根据文件类型处理内容
+        const fileExtension = getFileExtension(fileName).toLowerCase();
+        
+        if (fileExtension === 'md') {
+          // Markdown文件
+          const content = await response.text();
+          // 简单的Markdown转HTML处理
+          const htmlContent = marked(content);
+          resourceDoc.innerHTML = htmlContent;
+        } else if (fileExtension === 'json') {
+          // JSON文件
+          const jsonContent = await response.json();
+          resourceDoc.innerHTML = `
+            <pre class="bg-dark text-gray-300 p-4 rounded overflow-x-auto">
+              <code>${JSON.stringify(jsonContent, null, 2)}</code>
+            </pre>
+          `;
+        } else {
+          // 文本文件
+          const content = await response.text();
+          resourceDoc.innerHTML = `
+            <pre class="bg-dark text-gray-300 p-4 rounded overflow-x-auto">
+              <code>${escapeHTML(content)}</code>
+            </pre>
+          `;
+        }
+        
+        loadingIndicator.classList.add('hidden');
+        docContainer.classList.remove('hidden');
+      } catch (error) {
+        console.error('显示文档时出错:', error);
+        loadingIndicator.classList.add('hidden');
+        docContainer.classList.remove('hidden');
+        resourceDoc.innerHTML = `
+          <div class="text-center py-8">
+            <div class="w-16 h-16 rounded-full bg-dark-lighter mx-auto flex items-center justify-center mb-4">
+              <i class="fa fa-file-text-o text-2xl text-gray-400"></i>
+            </div>
+            <h3 class="text-lg font-medium text-gray-300 mb-2">文档加载失败</h3>
+            <p class="text-gray-500">${error.message}</p>
+          </div>
+        `;
+      }
+    }
+    
+    // 显示欢迎信息
+    function showWelcomeMessage() {
+      resourceContent.classList.add('hidden');
+      welcomeMessage.classList.remove('hidden');
+      
+      // 移除所有菜单项的活跃状态
+      document.querySelectorAll('.submenu-item').forEach(item => {
+        item.classList.remove('menu-active');
+      });
+    }
+    
+    // 获取文件图标
+    function getFileIcon(fileName) {
+      const extension = getFileExtension(fileName).toLowerCase();
+      
+      switch (extension) {
+        case 'jpg':
+        case 'jpeg':
+        case 'png':
+        case 'gif':
+        case 'bmp':
+          return 'fa-file-image-o';
+        case 'mp4':
+        case 'webm':
+        case 'ogg':
+          return 'fa-file-video-o';
+        case 'txt':
+        case 'md':
+          return 'fa-file-text-o';
+        case 'json':
+          return 'fa-file-code-o';
+        case 'html':
+        case 'htm':
+          return 'fa-file-code-o';
+        case 'css':
+          return 'fa-file-code-o';
+        case 'js':
+          return 'fa-file-code-o';
+        case 'pdf':
+          return 'fa-file-pdf-o';
+        case 'doc':
+        case 'docx':
+          return 'fa-file-word-o';
+        case 'xls':
+        case 'xlsx':
+          return 'fa-file-excel-o';
+        case 'ppt':
+        case 'pptx':
+          return 'fa-file-powerpoint-o';
+        default:
+          return 'fa-file-o';
+      }
+    }
+    
+    // 获取文件扩展名
+    function getFileExtension(fileName) {
+      return fileName.slice((fileName.lastIndexOf('.') - 1 >>> 0) + 2);
+    }
+    
+    // HTML转义
+    function escapeHTML(str) {
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+    
+    // 简单的Markdown解析器
+    function marked(text) {
+      // 简单实现，仅处理标题和换行
+      return text
+        .replace(/#\s+(.*$)/gm, '<h1>$1</h1>')
+        .replace(/##\s+(.*$)/gm, '<h2>$1</h2>')
+        .replace(/###\s+(.*$)/gm, '<h3>$1</h3>')
+        .replace(/\n/g, '<br>');
+    }
+  </script>
+</body>
+</html>
+    
