@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GitHub文件浏览器</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- PDF.js库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <!-- Markdown解析库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -167,6 +171,14 @@
             color: #0366d6;
         }
 
+        .file.text i {
+            color: #6a737d;
+        }
+
+        .file.markdown i {
+            color: #79b8ff;
+        }
+
         .file.other i {
             color: var(--github-text-light);
         }
@@ -285,11 +297,93 @@
             background: black;
         }
 
+        .pdf-preview {
+            width: 100%;
+            height: calc(100vh - 120px);
+            border: 1px solid var(--github-border);
+            border-radius: 6px;
+        }
+
+        .text-preview {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: rgba(30, 35, 40, 0.8);
+            border-radius: 6px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            line-height: 1.6;
+            overflow: auto;
+            max-height: 80vh;
+        }
+
+        .markdown-preview {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: rgba(30, 35, 40, 0.8);
+            border-radius: 6px;
+            overflow: auto;
+            max-height: 80vh;
+        }
+
+        .markdown-preview h1, 
+        .markdown-preview h2, 
+        .markdown-preview h3 {
+            color: var(--github-blue);
+            margin: 1em 0 0.5em 0;
+            border-bottom: 1px solid var(--github-border);
+            padding-bottom: 0.3em;
+        }
+
+        .markdown-preview p {
+            margin: 1em 0;
+            line-height: 1.6;
+        }
+
+        .markdown-preview code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+
+        .markdown-preview pre {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 16px;
+            border-radius: 6px;
+            overflow: auto;
+        }
+
+        .markdown-preview pre code {
+            background: transparent;
+            padding: 0;
+        }
+
+        .markdown-preview a {
+            color: var(--github-blue);
+            text-decoration: none;
+        }
+
+        .markdown-preview a:hover {
+            text-decoration: underline;
+        }
+
         .office-preview {
             width: 100%;
             height: calc(100vh - 120px);
-            border: none;
-            border-radius: 6px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .office-message {
+            text-align: center;
+            padding: 20px;
+            max-width: 600px;
         }
 
         .unsupported-file {
@@ -336,6 +430,7 @@
                 padding-top: 0;
             }
             
+            .pdf-preview,
             .office-preview {
                 height: calc(60vh - 60px);
             }
@@ -553,6 +648,8 @@
                 case 'pdf': iconClass = 'fa-file-pdf'; break;
                 case 'excel': iconClass = 'fa-file-excel'; break;
                 case 'word': iconClass = 'fa-file-word'; break;
+                case 'text': iconClass = 'fa-file-alt'; break;
+                case 'markdown': iconClass = 'fa-markdown'; break;
                 default: iconClass = 'fa-file';
             }
             
@@ -664,8 +761,12 @@
                 return 'pdf';
             } else if (['xls', 'xlsx', 'csv'].includes(ext)) {
                 return 'excel';
-            } else if (['doc', 'docx', 'txt'].includes(ext)) {
+            } else if (['doc', 'docx'].includes(ext)) {
                 return 'word';
+            } else if (['md', 'markdown'].includes(ext)) {
+                return 'markdown';
+            } else if (['txt', 'log', 'conf', 'ini'].includes(ext)) {
+                return 'text';
             }
             
             return 'other';
@@ -691,6 +792,12 @@
                 case 'excel':
                 case 'word':
                     previewOfficeFile(file);
+                    break;
+                case 'markdown':
+                    previewMarkdown(file);
+                    break;
+                case 'text':
+                    previewText(file);
                     break;
                 default:
                     previewUnsupportedFile(file);
@@ -736,22 +843,130 @@
 
         // 预览PDF
         function previewPDF(file) {
-            fileContentEl.innerHTML = `
-                <iframe 
-                    src="https://docs.google.com/gview?url=${encodeURIComponent(file.path)}&embedded=true" 
-                    class="office-preview">
-                </iframe>
-            `;
+            const container = document.createElement('div');
+            container.className = 'pdf-preview';
+            fileContentEl.appendChild(container);
+            
+            // 显示加载状态
+            const loader = document.createElement('div');
+            loader.className = 'loader';
+            loader.style.margin = '40px auto';
+            container.appendChild(loader);
+            
+            // 初始化PDF.js
+            pdfjsLib.getDocument(file.path).promise.then(pdf => {
+                // 移除加载器
+                loader.remove();
+                
+                // 渲染第一页
+                pdf.getPage(1).then(page => {
+                    const scale = 1.5;
+                    const viewport = page.getViewport({ scale });
+                    
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+                    
+                    container.appendChild(canvas);
+                    
+                    const renderContext = {
+                        canvasContext: context,
+                        viewport: viewport
+                    };
+                    
+                    page.render(renderContext);
+                });
+            }).catch(error => {
+                loader.remove();
+                container.innerHTML = `
+                    <div class="unsupported-file">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <h3>无法加载PDF</h3>
+                        <p>${error.message}</p>
+                        <p>请下载文件后使用本地应用打开</p>
+                    </div>
+                `;
+            });
         }
 
         // 预览Office文件
         function previewOfficeFile(file) {
-            fileContentEl.innerHTML = `
-                <iframe 
-                    src="https://docs.google.com/gview?url=${encodeURIComponent(file.path)}&embedded=true" 
-                    class="office-preview">
-                </iframe>
+            const container = document.createElement('div');
+            container.className = 'office-preview';
+            
+            const icon = document.createElement('i');
+            icon.className = file.fileType === 'excel' ? 'fas fa-file-excel' : 'fas fa-file-word';
+            icon.style.fontSize = '4rem';
+            icon.style.color = file.fileType === 'excel' ? '#28a745' : '#0366d6';
+            icon.style.marginBottom = '20px';
+            
+            const message = document.createElement('div');
+            message.className = 'office-message';
+            message.innerHTML = `
+                <h3>${file.name}</h3>
+                <p>由于网络限制，无法在线预览此文件</p>
+                <p>请下载后使用本地应用打开</p>
             `;
+            
+            container.appendChild(icon);
+            container.appendChild(message);
+            fileContentEl.appendChild(container);
+        }
+
+        // 预览Markdown文件
+        async function previewMarkdown(file) {
+            try {
+                const response = await fetch(file.path);
+                if (!response.ok) {
+                    throw new Error('加载文件失败');
+                }
+                
+                const markdownText = await response.text();
+                const htmlContent = marked.parse(markdownText);
+                
+                const container = document.createElement('div');
+                container.className = 'markdown-preview';
+                container.innerHTML = htmlContent;
+                
+                fileContentEl.appendChild(container);
+            } catch (error) {
+                console.error('加载Markdown失败:', error);
+                fileContentEl.innerHTML = `
+                    <div class="unsupported-file">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <h3>无法加载Markdown文件</h3>
+                        <p>请尝试下载文件查看</p>
+                    </div>
+                `;
+            }
+        }
+
+        // 预览文本文件
+        async function previewText(file) {
+            try {
+                const response = await fetch(file.path);
+                if (!response.ok) {
+                    throw new Error('加载文件失败');
+                }
+                
+                const textContent = await response.text();
+                
+                const container = document.createElement('div');
+                container.className = 'text-preview';
+                container.textContent = textContent;
+                
+                fileContentEl.appendChild(container);
+            } catch (error) {
+                console.error('加载文本文件失败:', error);
+                fileContentEl.innerHTML = `
+                    <div class="unsupported-file">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <h3>无法加载文本文件</h3>
+                        <p>请尝试下载文件查看</p>
+                    </div>
+                `;
+            }
         }
 
         // 预览不支持的文件
