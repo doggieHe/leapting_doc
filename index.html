@@ -85,7 +85,7 @@
 
         /* 侧边栏样式 */
         .sidebar {
-            width: 350px;
+            width: 350px; /* 修改为350px */
             background: rgba(22, 27, 34, 0.95);
             padding-top: 60px;
             border-right: 1px solid var(--github-border);
@@ -187,6 +187,8 @@
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.3s ease;
+            margin-left: 15px; /* 子文件夹向右缩进 */
+            border-left: 1px solid rgba(88, 166, 255, 0.2); /* 添加缩进线 */
         }
 
         .sub-items.show {
@@ -209,7 +211,7 @@
         }
 
         .file-header {
-            padding: 9px 20px;
+            padding: 9px 20px; /* 修改为9px 20px */
             border-bottom: 1px solid var(--github-border);
             display: flex;
             justify-content: space-between;
@@ -443,6 +445,12 @@
         }
 
         /* 响应式设计 */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 300px;
+            }
+        }
+
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
@@ -466,6 +474,10 @@
             
             .file {
                 padding-left: 45px;
+            }
+            
+            .sub-items {
+                margin-left: 10px;
             }
             
             .image-preview,
@@ -565,7 +577,7 @@
                 }
                 
                 const contents = await response.json();
-                renderFileTree(contents);
+                renderFileTree(contents, 0); // 从层级0开始
                 
                 // 隐藏加载状态
                 treePlaceholder.style.display = 'none';
@@ -587,13 +599,11 @@
         }
 
         // 渲染文件树
-        function renderFileTree(contents) {
-            fileTreeEl.innerHTML = '';
-            
+        function renderFileTree(contents, level) {
             // 过滤掉根目录下的文件，只显示文件夹
             const folders = contents.filter(item => item.type === 'dir');
             
-            if (folders.length === 0) {
+            if (folders.length === 0 && level === 0) {
                 fileTreeEl.innerHTML = `<div class="content-placeholder">
                     <i class="fas fa-folder-open"></i>
                     <h3>空仓库</h3>
@@ -612,6 +622,7 @@
                 // 子项目容器
                 const subItemsEl = document.createElement('div');
                 subItemsEl.className = 'sub-items';
+                subItemsEl.style.marginLeft = `${15 + (level * 10)}px`; // 根据层级增加缩进
                 
                 // 添加加载指示器
                 const loader = document.createElement('div');
@@ -650,9 +661,9 @@
                         // 添加文件和子文件夹
                         folderContents.forEach(item => {
                             if (item.type === 'file') {
-                                addFileItem(item, subItemsEl);
+                                addFileItem(item, subItemsEl, level + 1);
                             } else if (item.type === 'dir') {
-                                addFolderItem(item, subItemsEl);
+                                addFolderItem(item, subItemsEl, level + 1);
                             }
                         });
                         
@@ -675,7 +686,7 @@
         }
 
         // 添加文件项
-        function addFileItem(item, parentEl) {
+        function addFileItem(item, parentEl, level) {
             const fileType = getFileType(item.name);
             const fileEl = document.createElement('div');
             fileEl.className = `file ${fileType}`;
@@ -697,6 +708,7 @@
             fileEl.dataset.path = item.path;
             fileEl.dataset.download = item.path;
             fileEl.dataset.type = fileType;
+            fileEl.style.paddingLeft = `${55 + (level * 10)}px`; // 根据层级增加缩进
             
             fileEl.addEventListener('click', () => {
                 // 移除之前选中的文件
@@ -719,14 +731,16 @@
         }
 
         // 添加文件夹项
-        function addFolderItem(item, parentEl) {
+        function addFolderItem(item, parentEl, level) {
             const folderEl = document.createElement('div');
             folderEl.className = 'folder';
             folderEl.innerHTML = `<i class="fas fa-folder"></i>${item.name}`;
             folderEl.dataset.path = item.path;
+            folderEl.style.paddingLeft = `${35 + (level * 10)}px`; // 根据层级增加缩进
             
             const subItemsEl = document.createElement('div');
             subItemsEl.className = 'sub-items';
+            subItemsEl.style.marginLeft = `${15 + (level * 10)}px`; // 根据层级增加缩进
             
             // 添加加载指示器
             const loader = document.createElement('div');
@@ -766,9 +780,9 @@
                     // 添加文件和子文件夹
                     folderContents.forEach(childItem => {
                         if (childItem.type === 'file') {
-                            addFileItem(childItem, subItemsEl);
+                            addFileItem(childItem, subItemsEl, level + 1);
                         } else if (childItem.type === 'dir') {
-                            addFolderItem(childItem, subItemsEl);
+                            addFolderItem(childItem, subItemsEl, level + 1);
                         }
                     });
                     
