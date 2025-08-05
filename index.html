@@ -899,74 +899,77 @@
             fileContentEl.appendChild(videoContainer);
         }
 
-        // 预览PDF
-        function previewPDF(file) {
-            const container = document.createElement('div');
-            container.className = 'pdf-container';
-            
-            const viewer = document.createElement('div');
-            viewer.className = 'pdf-viewer';
-            container.appendChild(viewer);
-            
-            fileContentEl.appendChild(container);
-            
-            // 显示加载状态
-            const loader = document.createElement('div');
-            loader.className = 'loader';
-            loader.style.margin = '40px auto';
-            viewer.appendChild(loader);
-            
-            // 初始化PDF.js
-            pdfjsLib.getDocument(file.path).promise.then(pdf => {
-                currentPdf = pdf;
-                
-                // 移除加载器
-                loader.remove();
-                
-                // 渲染第一页
-                renderPDFPage(pdf, 1, viewer);
-                renderPDFPage(pdf, 2, viewer);
-                renderPDFPage(pdf, 3, viewer);
-                
-            }).catch(error => {
-                loader.remove();
-                viewer.innerHTML = `
-                    <div class="unsupported-file">
-                        <i class="fas fa-exclamation-circle"></i>
-                        <h3>无法加载PDF</h3>
-                        <p>${error.message}</p>
-                        <p>请下载文件后使用本地应用打开</p>
-                    </div>
-                `;
-            });
+        // 预览PDF（显示全部页面）
+function previewPDF(file) {
+    const container = document.createElement('div');
+    container.className = 'pdf-container';
+    
+    const viewer = document.createElement('div');
+    viewer.className = 'pdf-viewer';
+    container.appendChild(viewer);
+    
+    fileContentEl.appendChild(container);
+    
+    // 显示加载状态
+    const loader = document.createElement('div');
+    loader.className = 'loader';
+    loader.style.margin = '40px auto';
+    viewer.appendChild(loader);
+    
+    // 初始化PDF.js
+    pdfjsLib.getDocument(file.path).promise.then(pdf => {
+        currentPdf = pdf;
+        
+        // 移除加载器
+        loader.remove();
+        
+        // 渲染所有页面（从第1页到最后一页）
+        for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
+            renderPDFPage(pdf, pageNumber, viewer);
         }
+        
+    }).catch(error => {
+        loader.remove();
+        viewer.innerHTML = `
+            <div class="unsupported-file">
+                <i class="fas fa-exclamation-circle"></i>
+                <h3>无法加载PDF</h3>
+                <p>${error.message}</p>
+                <p>请下载文件后使用本地应用打开</p>
+            </div>
+        `;
+    });
+}
 
-        // 渲染PDF页面
-        function renderPDFPage(pdf, pageNumber, container) {
-            pdf.getPage(pageNumber).then(page => {
-                const viewport = page.getViewport({ scale: 1.0 });
-                
-                // 计算适合容器宽度的缩放比例
-                const containerWidth = container.clientWidth - 40; // 减去padding
-                const scale = containerWidth / viewport.width;
-                const scaledViewport = page.getViewport({ scale });
-                
-                const canvas = document.createElement('canvas');
-                const context = canvas.getContext('2d');
-                canvas.height = scaledViewport.height;
-                canvas.width = scaledViewport.width;
-                canvas.className = 'pdf-canvas';
-                
-                container.appendChild(canvas);
-                
-                const renderContext = {
-                    canvasContext: context,
-                    viewport: scaledViewport
-                };
-                
-                page.render(renderContext);
-            });
-        }
+// 渲染PDF页面
+function renderPDFPage(pdf, pageNumber, container) {
+    pdf.getPage(pageNumber).then(page => {
+        const viewport = page.getViewport({ scale: 1.0 });
+        
+        // 计算适合容器宽度的缩放比例
+        const containerWidth = container.clientWidth - 40; // 减去padding
+        const scale = containerWidth / viewport.width;
+        const scaledViewport = page.getViewport({ scale });
+        
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.height = scaledViewport.height;
+        canvas.width = scaledViewport.width;
+        canvas.className = 'pdf-canvas';
+        // 为每个canvas添加页面间距
+        canvas.style.marginBottom = '20px';
+        
+        container.appendChild(canvas);
+        
+        const renderContext = {
+            canvasContext: context,
+            viewport: scaledViewport
+        };
+        
+        page.render(renderContext);
+    });
+}
+
 
         // 预览Office文件
         function previewOfficeFile(file) {
